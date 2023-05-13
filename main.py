@@ -14,9 +14,8 @@ app = fastapi.FastAPI()
 
 class RequestData(BaseModel):
     """Request model for the API"""
-    mp3_url: str
-    json_url: str
-    ass_url: str
+    audio_url: str
+    destination_url: str
 
 
 @app.post('/transcribe')
@@ -28,32 +27,21 @@ async def transcribe_audio(data: RequestData):
 
 
     """
-    audio_path = data.mp3_url
-    json_url = data.json_url
-    ass_url = data.ass_url
+    audio_path = data.audio_url
+    destination_url = data.destination_url
     # Make temporary Folder
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Download mp3 from url
         audio_filename = audio_path.split("/")[-1].split("?")[0]
         audio_path = download_mp3_azure(audio_path, tmpdirname, audio_filename)
-
-        results = transcribe_whisperx(audio_path)
-        # Writing to ass file
-        writer = whisperx.utils.get_writer("ass", tmpdirname)
-        import pdb; pdb.set_trace()
-        writer(results, audio_path)
-
-
+        # Transcribing with WhisperX
+        results = transcribe_whisperx(audio_path)   
         json_filepath = audio_filename.replace(".mp3", ".json")
         json_filepath = f"{tmpdirname}/{audio_filename}.json"
         # save content in jsonfile
         with open(json_filepath, "w", encoding="utf-8") as outfile:
             json.dump(results["word_segments"], outfile)
         # save json file to azure
-        save_results_to_azure(json_url, json_filepath)
-        # save ass file to azure
-        ass_filepath = audio_filename.replace(".mp3", ".ass")
-        ass_filepath = f"{tmpdirname}/{ass_filepath}"
-        save_results_to_azure(ass_url, ass_filepath)
+        save_results_to_azure(destination_url, json_filepath)
     # return status
-    return
+    return True
