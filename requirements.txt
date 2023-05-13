@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+numba
+numpy
+torch
+tqdm
+more-itertools
+tiktoken==0.3.3
+azure-storage-blob
