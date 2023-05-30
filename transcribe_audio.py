@@ -1,8 +1,8 @@
-import whisperx
+import whisperx_local as whisperx
 import whisper
 
 
-def transcribe_whisperx(audio_path: str):
+def transcribe_whisperx(audio_path: str, model_path:str = "small"):
     """Transcribtion with the help of whisper
 
     Args:
@@ -15,7 +15,7 @@ def transcribe_whisperx(audio_path: str):
     device = "cuda"
 
     # transcribe with original whisper
-    model = whisper.load_model("small", device)
+    model = whisper.load_model(model_path, device)
     result = model.transcribe(audio_path)
 
     # load alignment model and metadata

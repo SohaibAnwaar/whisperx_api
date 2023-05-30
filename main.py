@@ -4,7 +4,7 @@ import tempfile
 import fastapi
 from pydantic import BaseModel
 
-import whisperx
+import whisperx_local as whisperx
 from transcribe_audio import transcribe_whisperx
 from utils import download_mp3_azure, save_results_to_azure
 
@@ -35,7 +35,7 @@ async def transcribe_audio(data: RequestData):
         audio_filename = audio_path.split("/")[-1].split("?")[0]
         audio_path = download_mp3_azure(audio_path, tmpdirname, audio_filename)
         # Transcribing with WhisperX
-        results = transcribe_whisperx(audio_path)   
+        results = transcribe_whisperx(audio_path, model_path="./models/small.pt")   
         json_filepath = audio_filename.replace(".mp3", ".json")
         json_filepath = f"{tmpdirname}/{audio_filename}.json"
         # save content in jsonfile
