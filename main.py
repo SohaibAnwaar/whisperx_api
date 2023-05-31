@@ -1,10 +1,13 @@
+"""Fast API to transcribe the audio with whisperx
+
+"""
+
 import json
 import tempfile
 
 import fastapi
 from pydantic import BaseModel
 
-import whisperx_local as whisperx
 from transcribe_audio import transcribe_whisperx
 from utils import download_mp3_azure, save_results_to_azure
 

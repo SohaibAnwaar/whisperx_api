@@ -19,6 +19,6 @@ RUN pip install git+https://github.com/m-bain/whisperx.git
 RUN pip install jupyter ipykernel fastapi uvicorn numba numpy torch tqdm more-itertools tiktoken==0.3.3 azure-storage-blob modal-client
 
 EXPOSE 8888
-# Use external volume for data
 ENV NVIDIA_VISIBLE_DEVICES 1
-# CMD ["bash"]
+
+CMD [ "bash" ]
