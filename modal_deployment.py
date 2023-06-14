@@ -7,9 +7,9 @@ import tempfile
 import modal
 from modal import web_endpoint
 
-from utils import download_mp3_azure, save_results_to_azure
+from utils import download_mp3_gcp, save_results_to_gcp
 
-LOCAL_CODE_PATH = "/home/sohaib/Documents/chopcast_workspace/whisperx_api/"
+LOCAL_CODE_PATH = "/Users/sohaib/Documents/whisperx_api"
 REMOTE_PATH = "/tmp/models/"
 
 sys.path.append(REMOTE_PATH)
@@ -37,7 +37,9 @@ def transcribe_audio_large(audio_url, destination_url):
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Download mp3 from url
         audio_filename = audio_url.split("/")[-1].split("?")[0]
-        audio_url = download_mp3_azure(audio_url, tmpdirname, audio_filename)
+        blob_path = "/".join(audio_url.split("/")[4:-1])
+
+        audio_path = download_mp3_gcp(audio_url, tmpdirname, audio_filename)
         # Transcribing with WhisperX f"{REMOTE_PATH}models/small.pt"
         results = transcribe_whisperx(audio_url, model_path="large")   
         json_filepath = audio_filename.replace(".mp3", ".json")
@@ -46,6 +48,6 @@ def transcribe_audio_large(audio_url, destination_url):
         with open(json_filepath, "w", encoding="utf-8") as outfile:
             json.dump(results["word_segments"], outfile)
         # save json file to azure
-        save_results_to_azure(destination_url, json_filepath)
+        save_results_to_gcp(blob_path, json_filepath)
 
     return destination_url
