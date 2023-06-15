@@ -8,7 +8,7 @@ from google.oauth2 import service_account
 from google.cloud import storage
 
 
-GOOGLE_CREDS_PATH = '/whisperx/chopcast.json'
+
 BUCKET = 'chopcast_staging_bucket'
 
 def download_mp3_azure(url, tmpdirname, audio_filename):
@@ -75,7 +75,7 @@ def save_results_to_azure(sas_url,  ass_filepath):
 
 
 
-def download_mp3_gcp(url, tmpdirname, audio_filename):
+def download_mp3_gcp(url, tmpdirname, audio_filename, GOOGLE_CREDS_PATH = '/whisperx/chopcast.json'):
     """
     Download mp3 file from Google Cloud Storage
 
@@ -85,7 +85,7 @@ def download_mp3_gcp(url, tmpdirname, audio_filename):
         tmpdirname (str): temporary directory to save the mp3 file
         audio_filename (str): name of the audio file to be saved
     """
-    global GOOGLE_CREDS_PATH, BUCKET
+    global BUCKET
     GOOGLE_CREDS = service_account.Credentials.from_service_account_file(GOOGLE_CREDS_PATH)
 
 
@@ -108,47 +108,22 @@ def download_mp3_gcp(url, tmpdirname, audio_filename):
     return destination
 
 
-def save_results_to_gcp(destination_url, ass_filepath):
+def save_results_to_gcp(destination_path, ass_filepath, GOOGLE_CREDS_PATH='/whisperx/chopcast.json'):
     """
     Store results back into Google Cloud Storage
     Args:
-        destination_url (str): GCS destination directory URL
+        destination_path (str): GCS destination directory path
         ass_filepath (str): ass file path
     """
-    global GOOGLE_CREDS_PATH, BUCKET
+    global  BUCKET
     GOOGLE_CREDS = service_account.Credentials.from_service_account_file(GOOGLE_CREDS_PATH)
 
 
-    file_name_only = os.path.basename(ass_filepath)
-    try:
-        file_ext = '.' + file_name_only.split('.')[1]
-        file_ext = '.txt' if file_ext != ".json" else file_ext
-    except IndexError:
-        file_ext = None
+    storage_client = storage.Client(credentials=GOOGLE_CREDS)
+    bucket = storage_client.get_bucket(BUCKET)
+    blob = bucket.blob(destination_path)
 
-    # Set content Type
-    if file_ext is not None:
-        content_type_string = mimetypes.types_map[".txt"]
-    else:
-        content_type_string = None
-
-    # Read the file content
-    with open(ass_filepath, "rb") as file:
-        file_content = file.read()
-
-    # Upload the file to GCP
-    client = storage.Client(credentials=GOOGLE_CREDS)
-    bucket = client.get_bucket(BUCKET)
-
-    # Concatenate the destination directory URL with the filename
-    blob_path = f"{destination_url}/{file_name_only}"
-
-    blob = bucket.blob(blob_path)
-
-    if content_type_string is not None:
-        blob.content_type = content_type_string
-  
-    blob.upload_from_string(file_content)
+    blob.upload_from_filename(ass_filepath)
 
     print("File uploaded successfully.")
 

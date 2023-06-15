@@ -2,3 +2,5 @@ models/small.pt
 *.pyc
 */__pycache__*
 wav2vec2_models/wav2vec2_fairseq_base_ls960_asr_ls960.pth
+models/medium.pt
+data/*

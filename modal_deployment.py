@@ -41,17 +41,15 @@ def transcribe_audio_large(audio_url, destination_url):
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Download mp3 from url
         audio_filename = audio_url.split("/")[-1].split("?")[0]
-        blob_path = "/".join(audio_url.split("/")[4:-1])
-
         audio_path = download_mp3_gcp(audio_url, tmpdirname, audio_filename)
         # Transcribing with WhisperX f"{REMOTE_PATH}models/small.pt"
-        results = transcribe_whisperx(audio_url, model_path="large")   
+        results = transcribe_whisperx(audio_path, model_path="/whisperx/models/small.pt")   
         json_filepath = audio_filename.replace(".mp3", ".json")
         json_filepath = f"{tmpdirname}/{audio_filename}.json"
         # save content in jsonfile
         with open(json_filepath, "w", encoding="utf-8") as outfile:
             json.dump(results["word_segments"], outfile)
         # save json file to azure
-        save_results_to_gcp(blob_path, json_filepath)
+        save_results_to_gcp(destination_url, json_filepath)
 
     return destination_url
