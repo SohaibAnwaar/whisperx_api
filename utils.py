@@ -8,6 +8,9 @@ from google.oauth2 import service_account
 from google.cloud import storage
 
 
+GOOGLE_CREDS_PATH = '/whisperx/chopcast.json'
+BUCKET = 'chopcast_staging_bucket'
+
 def download_mp3_azure(url, tmpdirname, audio_filename):
     """Download mp3 file from azure blob storage
 
@@ -82,17 +85,17 @@ def download_mp3_gcp(url, tmpdirname, audio_filename):
         tmpdirname (str): temporary directory to save the mp3 file
         audio_filename (str): name of the audio file to be saved
     """
-    blob_name = url.replace("https://storage.googleapis.com/chopcast_staging_bucket/", "")
+    global GOOGLE_CREDS_PATH, BUCKET
+    GOOGLE_CREDS = service_account.Credentials.from_service_account_file(GOOGLE_CREDS_PATH)
 
-    bucket_name = 'chopcast_staging_bucket'
 
-    credentials = service_account.Credentials.from_service_account_file('/Users/sohaib/Documents/whisperx_api/chopcast.json')
+    blob_name = url.replace("https://storage.googleapis.com/chopcast_staging_bucket/", "")    
     destination = f"./data/{audio_filename}"
 
     # Download the MP3 file from GCP
-    client = storage.Client(credentials=credentials)
+    client = storage.Client(credentials=GOOGLE_CREDS)
 
-    bucket = client.get_bucket(bucket_name)
+    bucket = client.get_bucket(BUCKET)
 
     blob = bucket.blob(blob_name)
 
@@ -104,6 +107,7 @@ def download_mp3_gcp(url, tmpdirname, audio_filename):
 
     return destination
 
+
 def save_results_to_gcp(destination_url, ass_filepath):
     """
     Store results back into Google Cloud Storage
@@ -111,10 +115,10 @@ def save_results_to_gcp(destination_url, ass_filepath):
         destination_url (str): GCS destination directory URL
         ass_filepath (str): ass file path
     """
-    bucket_name = 'chopcast_staging_bucket'
+    global GOOGLE_CREDS_PATH, BUCKET
+    GOOGLE_CREDS = service_account.Credentials.from_service_account_file(GOOGLE_CREDS_PATH)
 
-    credentials = service_account.Credentials.from_service_account_file('/Users/sohaib/Documents/whisperx_api/chopcast.json')
-    
+
     file_name_only = os.path.basename(ass_filepath)
     try:
         file_ext = '.' + file_name_only.split('.')[1]
@@ -133,8 +137,8 @@ def save_results_to_gcp(destination_url, ass_filepath):
         file_content = file.read()
 
     # Upload the file to GCP
-    client = storage.Client(credentials=credentials)
-    bucket = client.get_bucket(bucket_name)
+    client = storage.Client(credentials=GOOGLE_CREDS)
+    bucket = client.get_bucket(BUCKET)
 
     # Concatenate the destination directory URL with the filename
     blob_path = f"{destination_url}/{file_name_only}"

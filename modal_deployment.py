@@ -8,17 +8,21 @@ import modal
 from modal import web_endpoint
 
 from utils import download_mp3_gcp, save_results_to_gcp
+import os
 
-LOCAL_CODE_PATH = "/Users/sohaib/Documents/whisperx_api"
-REMOTE_PATH = "/tmp/models/"
 
+LOCAL_CODE_PATH = os.getcwd()
+REMOTE_PATH = "/whisperx/"
+
+
+print(LOCAL_CODE_PATH)
 sys.path.append(REMOTE_PATH)
 
 
 stub = modal.Stub(name="whisperx")
 
 # whisperx_docker = modal.Image.from_dockerfile("Dockerfile")
-whisperx_docker = modal.Image.from_dockerhub("sohaibanwaar/whisperx:latest")
+whisperx_docker = modal.Image.from_dockerhub("sohaibanwaar/whisperx:0.0.1")
 
 @stub.function(gpu="any", image=whisperx_docker,
  mounts=[modal.Mount.from_local_dir(LOCAL_CODE_PATH, remote_path=REMOTE_PATH)])
