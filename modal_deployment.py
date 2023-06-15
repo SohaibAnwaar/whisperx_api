@@ -24,7 +24,7 @@ stub = modal.Stub(name="whisperx")
 # whisperx_docker = modal.Image.from_dockerfile("Dockerfile")
 whisperx_docker = modal.Image.from_dockerhub("sohaibanwaar/whisperx:0.0.1")
 
-@stub.function(gpu="any", image=whisperx_docker,
+@stub.function(gpu="A10G", image=whisperx_docker,
  mounts=[modal.Mount.from_local_dir(LOCAL_CODE_PATH, remote_path=REMOTE_PATH)])
 @web_endpoint(label="whisperx")
 def transcribe_audio_large(audio_url, destination_url):
