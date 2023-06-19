@@ -8,3 +8,8 @@ more-itertools
 tiktoken==0.3.3
 azure-storage-blob
 modal-client
+google-auth==2.20.0
+google-auth-oauthlib==1.0.0
+google-cloud-core==2.3.2
+google-cloud-storage==2.9.0
+google-api-python-client

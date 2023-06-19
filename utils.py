@@ -1,9 +1,15 @@
 
 import os
+from pathlib import Path
 import requests
 import mimetypes
 from azure.storage.blob import ContentSettings
+from google.oauth2 import service_account
+from google.cloud import storage
 
+
+
+BUCKET = 'chopcast_staging_bucket'
 
 def download_mp3_azure(url, tmpdirname, audio_filename):
     """Download mp3 file from azure blob storage
@@ -66,3 +72,60 @@ def save_results_to_azure(sas_url,  ass_filepath):
     else:
         print(
             f"Failed to upload the file. Status code: {response.status_code}")
+
+
+
+def download_mp3_gcp(url, tmpdirname, audio_filename, GOOGLE_CREDS_PATH = '/whisperx/chopcast.json'):
+    """
+    Download mp3 file from Google Cloud Storage
+
+    Args:
+        bucket_name (str): GCS bucket name containing the mp3 file
+        blob_name (str): GCS blob name of the mp3 file
+        tmpdirname (str): temporary directory to save the mp3 file
+        audio_filename (str): name of the audio file to be saved
+    """
+    global BUCKET
+    GOOGLE_CREDS = service_account.Credentials.from_service_account_file(GOOGLE_CREDS_PATH)
+
+
+    blob_name = url.replace("https://storage.googleapis.com/chopcast_staging_bucket/", "")    
+    destination = f"./data/{audio_filename}"
+
+    # Download the MP3 file from GCP
+    client = storage.Client(credentials=GOOGLE_CREDS)
+
+    bucket = client.get_bucket(BUCKET)
+
+    blob = bucket.blob(blob_name)
+
+    destination_dir = Path(destination).parent
+    os.makedirs(destination_dir, exist_ok=True)
+
+    with open(destination, "wb") as file:
+        blob.download_to_file(file)
+
+    return destination
+
+
+def save_results_to_gcp(destination_path, ass_filepath, GOOGLE_CREDS_PATH='/whisperx/chopcast.json'):
+    """
+    Store results back into Google Cloud Storage
+    Args:
+        destination_path (str): GCS destination directory path
+        ass_filepath (str): ass file path
+    """
+    global  BUCKET
+    GOOGLE_CREDS = service_account.Credentials.from_service_account_file(GOOGLE_CREDS_PATH)
+
+
+    storage_client = storage.Client(credentials=GOOGLE_CREDS)
+    bucket = storage_client.get_bucket(BUCKET)
+    blob = bucket.blob(destination_path)
+
+    blob.upload_from_filename(ass_filepath)
+
+    print("File uploaded successfully.")
+
+
+
